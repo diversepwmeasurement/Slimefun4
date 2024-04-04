@@ -1,78 +1,54 @@
-name: Create new Release Candidate
-
-on:
-  workflow_dispatch:
-    inputs:
-      number:
-        description: 'RC number (e.g. 15)'
-        required: true
-      release_date:
-        description: 'Date of release (e.g. 12-apr-2021)'
-        required: true
-
 jobs:
   release:
-
     name: Create new release
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     steps:
-
-    - name: Checkout repository
+    - continue-on-error: true
+      name: Checkout repository
       uses: actions/checkout@v4
       with:
-        ref: 'stable'
-
-    - name: Merge latest commits into 'stable'
+        ref: stable
+    - continue-on-error: true
+      name: Merge latest commits into 'stable'
       uses: devmasx/merge-branch@1.4.0
       with:
-        type: now
-        from_branch: 'master'
-        target_branch: 'stable'
+        from_branch: master
         github_token: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Get the latest commit sha
+        target_branch: stable
+        type: now
+    - continue-on-error: true
       id: latest
+      name: Get the latest commit sha
       run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1.1.4
+    - continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      id: create_release
+      name: Create Release
+      uses: actions/create-release@v1.1.4
       with:
-        tag_name: RC-${{ github.event.inputs.number }}
-        release_name: Release Candidate ${{ github.event.inputs.number }} (git ${{ steps.latest.outputs.sha_short }})
+        body: "## \U0001F4BE  Download link\nThis release candidate of Slimefun4 can\
+          \ be downloaded here:\nhttps://blob.build/project/Slimefun4/RC\n\n### \u2753\
+          \ How to install Slimefun\nSimply drag & drop the Slimefun4 jar file into\
+          \ the `/plugins/` directory of your server.\nIf you need any help installing\
+          \ Slimefun, feel free to check out our wiki article on [How to install Slimefun](https://github.com/Slimefun/Slimefun4/wiki/Installing-Slimefun).\n\
+          \n## \U0001F4DD Change log\nYou can find a short summary of all the changes\
+          \ that are included in this release right here:\nhttps://github.com/Slimefun/Slimefun4/blob/master/CHANGELOG.md#release-candidate-${{\
+          \ github.event.inputs.number }}-${{ github.event.inputs.release_date }}\n\
+          \n## \U0001F4E6  Maven dependency reference\nIf you want to develop an addon\
+          \ for Slimefun ([Developer Reference](https://github.com/Slimefun/Slimefun4/wiki/Developer-Guide)),\
+          \ then you can build your project against this specific version of Slimefun\
+          \ using the following `pom.xml` dependency:\n```xml\n<repositories>\n  <repository>\n\
+          \    <id>jitpack.io</id>\n    <url>https://jitpack.io</url>\n  </repository>\n\
+          </repositories>\n\n<dependencies>\n  <dependency>\n    <groupId>com.github.Slimefun</groupId>\n\
+          \    <artifactId>Slimefun4</artifactId>\n    <version>RC-${{ github.event.inputs.number\
+          \ }}</version>\n  </dependency>\n</dependencies>\n```\n"
         draft: false
         prerelease: false
-        body: |
-          ## 💾  Download link
-          This release candidate of Slimefun4 can be downloaded here:
-          https://blob.build/project/Slimefun4/RC
-
-          ### ❓ How to install Slimefun
-          Simply drag & drop the Slimefun4 jar file into the `/plugins/` directory of your server.
-          If you need any help installing Slimefun, feel free to check out our wiki article on [How to install Slimefun](https://github.com/Slimefun/Slimefun4/wiki/Installing-Slimefun).
-
-          ## 📝 Change log
-          You can find a short summary of all the changes that are included in this release right here:
-          https://github.com/Slimefun/Slimefun4/blob/master/CHANGELOG.md#release-candidate-${{ github.event.inputs.number }}-${{ github.event.inputs.release_date }}
-
-          ## 📦  Maven dependency reference
-          If you want to develop an addon for Slimefun ([Developer Reference](https://github.com/Slimefun/Slimefun4/wiki/Developer-Guide)), then you can build your project against this specific version of Slimefun using the following `pom.xml` dependency:
-          ```xml
-          <repositories>
-            <repository>
-              <id>jitpack.io</id>
-              <url>https://jitpack.io</url>
-            </repository>
-          </repositories>
-
-          <dependencies>
-            <dependency>
-              <groupId>com.github.Slimefun</groupId>
-              <artifactId>Slimefun4</artifactId>
-              <version>RC-${{ github.event.inputs.number }}</version>
-            </dependency>
-          </dependencies>
-          ```
+        release_name: Release Candidate ${{ github.event.inputs.number }} (git ${{
+          steps.latest.outputs.sha_short }})
+        tag_name: RC-${{ github.event.inputs.number }}
+name: Create new Release Candidate
+on:
+  repository_dispatch:
+    types: trigger-ga___release-candidates.yml

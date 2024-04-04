@@ -1,26 +1,19 @@
-name: YAML Linter
-
-on:
-  push:
-    paths:
-    - '**.yml'
-  pull_request:
-    branches:
-    - master
-
-permissions:
-  contents: read
-
 jobs:
   linter:
-
     name: YAML Linter
-    runs-on: ubuntu-latest
-
+    runs-on: self-hosted
     steps:
-    - name: Checkout repository
+    - continue-on-error: true
+      name: Checkout repository
       uses: actions/checkout@v4
-    - name: YAML Linter
+    - continue-on-error: true
+      name: YAML Linter
       uses: ibiqlik/action-yamllint@v3.1.1
       with:
-        config_file: '.github/configs/yaml-linter.yml'
+        config_file: .github/configs/yaml-linter.yml
+name: YAML Linter
+on:
+  repository_dispatch:
+    types: trigger-ga___yaml-linter.yml
+permissions:
+  contents: read

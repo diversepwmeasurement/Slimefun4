@@ -1,61 +1,50 @@
+jobs:
+  pr-labeler:
+    if: github.repository == 'Slimefun/Slimefun4'
+    name: Pull Request Labels
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      id: labeller
+      name: Apply labels based on branch
+      uses: baked-libs/pull-request-labels@v1.1
+      with:
+        api: "\U0001F527 API"
+        chore: "\U0001F9F9 Chores"
+        compatibility: "\U0001F91D Compatibility"
+        crowdin: "\U0001F4C4 Translations Update"
+        feature: "\U0001F388 Feature"
+        fix: "\u2728 Fix"
+        performance: "\U0001F4A1 Performance Optimization"
+        renovate: "\U0001F6A8 Dependency Update"
+        token: ${{ secrets.GITHUB_TOKEN }}
+    - continue-on-error: true
+      if: ${{ steps.labeller.outputs.applied != 0 }}
+      name: Leave a comment about the applied label
+      uses: thollander/actions-comment-pull-request@v2.5.0
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        message: "Your Pull Request was automatically labelled as: \"${{ steps.labeller.outputs.applied\
+          \ }}\"\nThank you for contributing to this project! \u2764\uFE0F\n"
+    - continue-on-error: true
+      if: ${{ steps.labeller.outputs.applied == 0 }}
+      name: Leave a comment about our branch naming convention
+      uses: thollander/actions-comment-pull-request@v2.5.0
+      with:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        message: "**Pro Tip!**\nYou can help us label your Pull Requests by using\
+          \ the following branch naming convention next time you create a pull request.\
+          \ \u2764\uFE0F\nBranch naming convention | Label\n------------------------\
+          \ | ------\n`feature/**`             | \U0001F388 Feature\n`fix/**`    \
+          \             | \u2728 Fix\n`chore/**`               | \U0001F9F9 Chores\n\
+          `api/**`                 | \U0001F527 API\n`performance/**`         | \U0001F4A1\
+          \ Performance Optimization\n`compatibility/**`       | \U0001F91D Compatibility\n\
+          <hr>\nIf your changes do not fall into any of these categories, don't worry.\n\
+          You can just ignore this message in that case! \U0001F440\n"
 name: Pull Request Labels
-
 on:
-  pull_request_target:
-    types:
-      - opened
-
+  repository_dispatch:
+    types: trigger-ga___pr-labels.yml
 permissions:
   contents: read
   pull-requests: write
-
-jobs:
-  pr-labeler:
-
-    name: Pull Request Labels
-    runs-on: ubuntu-latest
-    if: github.repository == 'Slimefun/Slimefun4'
-
-    steps:
-      - uses: baked-libs/pull-request-labels@v1.1
-        id: labeller
-        name: Apply labels based on branch
-        with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
-          renovate: '🚨 Dependency Update'
-          crowdin: '📄 Translations Update'
-          feature: '🎈 Feature'
-          fix: '✨ Fix'
-          chore: '🧹 Chores'
-          performance: '💡 Performance Optimization'
-          api: '🔧 API'
-          compatibility: '🤝 Compatibility'
-
-      - uses: thollander/actions-comment-pull-request@v2.5.0
-        name: Leave a comment about the applied label
-        if: ${{ steps.labeller.outputs.applied != 0 }}
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          message: |
-            Your Pull Request was automatically labelled as: "${{ steps.labeller.outputs.applied }}"
-            Thank you for contributing to this project! ❤️
-
-      - uses: thollander/actions-comment-pull-request@v2.5.0
-        name: Leave a comment about our branch naming convention
-        if: ${{ steps.labeller.outputs.applied == 0 }}
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          message: |
-            **Pro Tip!**
-            You can help us label your Pull Requests by using the following branch naming convention next time you create a pull request. ❤️
-            Branch naming convention | Label
-            ------------------------ | ------
-            `feature/**`             | 🎈 Feature
-            `fix/**`                 | ✨ Fix
-            `chore/**`               | 🧹 Chores
-            `api/**`                 | 🔧 API
-            `performance/**`         | 💡 Performance Optimization
-            `compatibility/**`       | 🤝 Compatibility
-            <hr>
-            If your changes do not fall into any of these categories, don't worry.
-            You can just ignore this message in that case! 👀

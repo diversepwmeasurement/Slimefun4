@@ -1,32 +1,28 @@
+jobs:
+  label:
+    if: "contains(github.event.issue.labels.*.name, '\U0001F41E Bug Report')"
+    name: Label Issue
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      id: resolved
+      name: Query recent commits
+      uses: TheBusyBiscuit/recently-closed-issues@1.1.0
+      with:
+        max_commits: 20
+        token: ${{ secrets.ACCESS_TOKEN }}
+    - continue-on-error: true
+      if: contains(steps.resolved.outputs.issues, github.event.issue.number)
+      name: Add label
+      uses: maxkomarychev/octions/octions/issues/add-labels@master
+      with:
+        issue_number: ${{ github.event.issue.number }}
+        labels: "\u2714 Resolved"
+        token: ${{ secrets.ACCESS_TOKEN }}
 name: Label resolved issues
-
 on:
-  issues:
-    types: [closed]
-
+  repository_dispatch:
+    types: trigger-ga___label-resolved-issues.yml
 permissions:
   contents: read
   issues: write
-
-jobs:
-  label:
-
-    name: Label Issue
-    runs-on: ubuntu-latest
-    if: contains(github.event.issue.labels.*.name, '🐞 Bug Report')
-
-    steps:
-      - name: Query recent commits
-        uses: TheBusyBiscuit/recently-closed-issues@1.1.0
-        id: resolved
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          max_commits: 20
-
-      - name: Add label
-        if: contains(steps.resolved.outputs.issues, github.event.issue.number)
-        uses: maxkomarychev/octions/octions/issues/add-labels@master
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          issue_number: ${{ github.event.issue.number }}
-          labels: '✔ Resolved'

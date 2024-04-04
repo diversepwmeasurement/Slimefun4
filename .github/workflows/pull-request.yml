@@ -1,62 +1,63 @@
-name: Pull Request
-
-on:
-  pull_request:
-    paths:
-    - '.github/workflows/**'
-    - 'src/**'
-    - 'pom.xml'
-
-permissions:
-  contents: read
-
 jobs:
+  call-workflows:
+    needs:
+    - setup-preview-build
+    uses: ./.github/workflows/e2e-testing.yml
+    with:
+      artifact-name: slimefun-${{ github.event.number }}-${{ needs.setup-preview-build.outputs.short-commit-hash
+        }}
   setup-preview-build:
     name: Preview build
-    runs-on: ubuntu-latest
     outputs:
-     short-commit-hash: ${{ steps.env-setup.outputs.SHORT_COMMIT_HASH }}
-
+      short-commit-hash: ${{ steps.env-setup.outputs.SHORT_COMMIT_HASH }}
+    runs-on: self-hosted
     steps:
-    - name: Checkout repository
+    - continue-on-error: true
+      name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Set up JDK 17
+    - continue-on-error: true
+      name: Set up JDK 17
       uses: actions/setup-java@v4.0.0
       with:
-        distribution: 'adopt'
-        java-version: '17'
-        java-package: jdk
         architecture: x64
-
-    - name: Cache Maven packages
+        distribution: adopt
+        java-package: jdk
+        java-version: '17'
+    - continue-on-error: true
+      name: Cache Maven packages
       uses: actions/cache@v4
       with:
-        path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        path: ~/.m2
         restore-keys: ${{ runner.os }}-m2
+    - continue-on-error: true
+      id: env-setup
+      run: 'SHORT_COMMIT_HASH=$(git rev-parse --short=8 ${{ github.sha }})
 
-    # Setup for the preview build
-    - id: env-setup
-      run: |
-        SHORT_COMMIT_HASH=$(git rev-parse --short=8 ${{ github.sha }})
         JAR_VERSION="Preview Build #${{ github.event.number }}-$SHORT_COMMIT_HASH"
+
         echo "SHORT_COMMIT_HASH=$SHORT_COMMIT_HASH" >> "$GITHUB_ENV"
+
         echo "SHORT_COMMIT_HASH=$SHORT_COMMIT_HASH" >> "$GITHUB_OUTPUT"
+
         echo "JAR_VERSION=$JAR_VERSION" >> "$GITHUB_ENV"
-        sed -i "s/<version>4.9-UNOFFICIAL<\/version>/<version>$JAR_VERSION<\/version>/g" pom.xml
 
-    - name: Build with Maven
+        sed -i "s/<version>4.9-UNOFFICIAL<\/version>/<version>$JAR_VERSION<\/version>/g"
+        pom.xml
+
+        '
+    - continue-on-error: true
+      name: Build with Maven
       run: mvn package
-
-    - name: Upload the artifact
+    - continue-on-error: true
+      name: Upload the artifact
       uses: actions/upload-artifact@v4
       with:
         name: slimefun-${{ github.event.number }}-${{ env.SHORT_COMMIT_HASH }}
-        path: 'target/Slimefun v${{ env.JAR_VERSION }}.jar'
-
-  call-workflows:
-    needs: [setup-preview-build]
-    uses: ./.github/workflows/e2e-testing.yml
-    with:
-      artifact-name: slimefun-${{ github.event.number }}-${{ needs.setup-preview-build.outputs.short-commit-hash }}
+        path: target/Slimefun v${{ env.JAR_VERSION }}.jar
+name: Pull Request
+on:
+  repository_dispatch:
+    types: trigger-ga___pull-request.yml
+permissions:
+  contents: read

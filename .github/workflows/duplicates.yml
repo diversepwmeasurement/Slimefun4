@@ -1,25 +1,20 @@
+jobs:
+  comment:
+    if: contains(github.event.comment.body, 'Duplicate of ')
+    name: Mark Issue as duplicate
+    runs-on: self-hosted
+    steps:
+    - continue-on-error: true
+      name: Add label to the Issue
+      uses: maxkomarychev/octions/octions/issues/add-labels@master
+      with:
+        issue_number: ${{ github.event.issue.number }}
+        labels: "\U0001F6A9 Duplicate"
+        token: ${{ secrets.ACCESS_TOKEN }}
 name: Mark Issue as duplicate
-
 on:
-  issue_comment:
-    types: [created]
-
+  repository_dispatch:
+    types: trigger-ga___duplicates.yml
 permissions:
   contents: read
   issues: write
-
-jobs:
-  comment:
-
-    name: Mark Issue as duplicate
-    runs-on: ubuntu-latest
-
-    if: contains(github.event.comment.body, 'Duplicate of ')
-
-    steps:
-      - name: Add label to the Issue
-        uses: maxkomarychev/octions/octions/issues/add-labels@master
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-          issue_number: ${{ github.event.issue.number }}
-          labels: '🚩 Duplicate'

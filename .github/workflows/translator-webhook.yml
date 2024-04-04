@@ -1,26 +1,20 @@
-name: Translation Notifier
-
-on:
-  push:
-    branches:
-    - master
-    paths:
-    - 'src/main/resources/languages/en/**.yml'
-
-permissions:
-  contents: read
-
 jobs:
   notify:
-
-    name: Translation-Notifier
-    runs-on: ubuntu-latest
     if: github.repository == 'Slimefun/Slimefun4'
-
+    name: Translation-Notifier
+    runs-on: self-hosted
     steps:
-      - name: Discord Notification
-        uses: Ilshidur/action-discord@master
-        with:
-          args: '<@&665202905271369776> New strings have been added to Slimefun4''s language files. You can translate them at https://crowdin.com/project/slimefun'
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.TRANSLATOR_WEBHOOK }}
+    - continue-on-error: true
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.TRANSLATOR_WEBHOOK }}
+      name: Discord Notification
+      uses: Ilshidur/action-discord@master
+      with:
+        args: <@&665202905271369776> New strings have been added to Slimefun4's language
+          files. You can translate them at https://crowdin.com/project/slimefun
+name: Translation Notifier
+on:
+  repository_dispatch:
+    types: trigger-ga___translator-webhook.yml
+permissions:
+  contents: read

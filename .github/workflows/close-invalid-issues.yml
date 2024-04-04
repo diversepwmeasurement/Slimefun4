@@ -1,37 +1,41 @@
-name: Close invalid Issue
-
-on:
-  issues:
-    types: [opened]
-
 jobs:
   comment:
-
+    if: "contains(github.event.issue.labels.*.name, '\U0001F41E Bug Report') == false\
+      \ && contains(github.event.issue.labels.*.name, 'Hacktoberfest') == false"
     name: Invalid Issues
-    runs-on: ubuntu-latest
-
-    if: contains(github.event.issue.labels.*.name, '🐞 Bug Report') == false && contains(github.event.issue.labels.*.name, 'Hacktoberfest') == false
+    runs-on: self-hosted
     steps:
-    - name: Close Issue
+    - continue-on-error: true
+      name: Close Issue
       uses: maxkomarychev/octions/octions/issues/update@master
       with:
-         token: ${{ secrets.ACCESS_TOKEN }}
-         issue_number: ${{ github.event.issue.number }}
-         state: closed
-    - name: Add invalid label
+        issue_number: ${{ github.event.issue.number }}
+        state: closed
+        token: ${{ secrets.ACCESS_TOKEN }}
+    - continue-on-error: true
+      name: Add invalid label
       uses: maxkomarychev/octions/octions/issues/add-labels@master
       with:
-         token: ${{ secrets.ACCESS_TOKEN }}
-         issue_number: ${{ github.event.issue.number }}
-         labels: 'invalid'
-    - name: Create a comment
+        issue_number: ${{ github.event.issue.number }}
+        labels: invalid
+        token: ${{ secrets.ACCESS_TOKEN }}
+    - continue-on-error: true
+      name: Create a comment
       uses: maxkomarychev/octions/octions/issues/create-comment@master
       with:
-         token: ${{ secrets.ACCESS_TOKEN }}
-         issue_number: ${{ github.event.issue.number }}
-         body: |-
-           Your issue seems to be missing our template.
-           [Click here to create a bug report](https://github.com/Slimefun/Slimefun4/issues/new/choose)
+        body: 'Your issue seems to be missing our template.
 
-           Please remember that this Bug Tracker is exclusively reserved for Bug reports, any other form
-           of discussion, like suggestions or questions should be posted on our discord server (You can find a link [on our main page](https://github.com/Slimefun/Slimefun4#discord)).
+          [Click here to create a bug report](https://github.com/Slimefun/Slimefun4/issues/new/choose)
+
+
+          Please remember that this Bug Tracker is exclusively reserved for Bug reports,
+          any other form
+
+          of discussion, like suggestions or questions should be posted on our discord
+          server (You can find a link [on our main page](https://github.com/Slimefun/Slimefun4#discord)).'
+        issue_number: ${{ github.event.issue.number }}
+        token: ${{ secrets.ACCESS_TOKEN }}
+name: Close invalid Issue
+on:
+  repository_dispatch:
+    types: trigger-ga___close-invalid-issues.yml
